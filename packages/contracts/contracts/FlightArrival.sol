@@ -4,7 +4,7 @@ import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/Fu
 
 import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
 import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
-import "./FlightUtils.sol";
+import  "./FlightUtils.sol";
 import "./IFlightArrival.sol";
 // unique identifier for flight arrivals -> flight number + departure date e.g. "AA123-20231015"
 
@@ -50,12 +50,6 @@ contract FlightArrival is FunctionsClient, ConfirmedOwner, IFlightArrival {
         _;
     }
 
-    modifier requestNotPending(bytes32 flightIdHash) {
-        uint256 pendingTimestamp = pendingRequests[flightIdHash];
-        require(block.timestamp >= pendingTimestamp + WAITING_PERIOD, RequestAlreadyPending());
-        _;
-    }
-
     constructor(address _router, bytes32 _donID) FunctionsClient(_router) ConfirmedOwner(msg.sender) {
         router = _router;
         donID = _donID;
@@ -73,26 +67,28 @@ contract FlightArrival is FunctionsClient, ConfirmedOwner, IFlightArrival {
         return flightArrivals[keccak256(flightId)];
     }
 
-    function _sendRequest(
+    function _requestData(
         uint64 subscriptionId,
         address requester,
         bytes memory flightId
     ) internal returns (bytes32) {
         bytes32 flightIdHash = keccak256(flightId);
         require(flightArrivals[flightIdHash] == 0, FlightDataAlreadyAvailable());
-        require(pendingRequests[flightIdHash] == 0 || block.timestamp > pendingRequests[flightIdHash] + WAITING_PERIOD, RequestAlreadyPending());
+        uint256 pendingTimestamp = pendingRequests[flightIdHash];
+        require(pendingTimestamp == 0 || block.timestamp >= pendingTimestamp + WAITING_PERIOD, RequestAlreadyPending());
+
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(source); // Initialize the request with JS code
         string[] memory args = new string[](1);
         args[0] = string(flightId);
         req.setArgs(args); // Set the flightId as an argument to the JS code
-
         // Send the request and store the request ID
         bytes32 requestId  = _sendRequest(req.encodeCBOR(), subscriptionId, gasLimit, donID);
         requests[requestId] = Request({
             requester: requester,
             flightIdHash: keccak256(flightId)
         });
+        pendingRequests[flightIdHash] = block.timestamp;
         emit RequestSent(requestId, requester, flightId);
         return requestId;
     }
@@ -104,7 +100,7 @@ contract FlightArrival is FunctionsClient, ConfirmedOwner, IFlightArrival {
         string memory departureDate
     ) external onlyCaller returns (bytes32) {
         bytes memory flightId = FlightUtils.computeFlightId(flightNumber, departureDate);
-        bytes32 requestId = _sendRequest(subscriptionId, requester, flightId);
+        bytes32 requestId = _requestData(subscriptionId, requester, flightId);
         return requestId;
     }
 
@@ -113,7 +109,7 @@ contract FlightArrival is FunctionsClient, ConfirmedOwner, IFlightArrival {
         address requester,
         bytes memory flightId
     ) external onlyCaller returns (bytes32) {
-        bytes32 requestId = _sendRequest(subscriptionId, requester, flightId);
+        bytes32 requestId = _requestData(subscriptionId, requester, flightId);
         return requestId;
     }
 
@@ -135,6 +131,7 @@ contract FlightArrival is FunctionsClient, ConfirmedOwner, IFlightArrival {
         } else {
             uint256 arrivalTimestamp = abi.decode(response, (uint256));
             flightArrivals[flightIdHash] = arrivalTimestamp;
+            delete pendingRequests[flightIdHash];
             emit RequestFulfilled(requestId, requester, flightIdHash, arrivalTimestamp);
         }
     }
