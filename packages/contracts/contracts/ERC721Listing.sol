@@ -9,14 +9,21 @@ contract ERC721Listing is ERC721 {
 
     error TokenNotForSale(uint256 tokenId);
     error InvalidPaymentAmount(uint256 sent, uint256 required);
+    error InvalidPrice(uint256 price);
 
     event TokenListed(uint256 indexed tokenId, uint256 price);
     event TokenUnlisted(uint256 indexed tokenId);
+    event TokenPurchased(uint256 indexed tokenId, address indexed buyer, uint256 price);
 
     constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) {}
 
+    function tokenListedPrice(uint256 tokenId) external view returns (uint256) {
+        return tokenPrices[tokenId];
+    }
+
     function listToken(uint256 tokenId, uint256 price) external {
         require(ownerOf(tokenId) == msg.sender, ERC721IncorrectOwner(msg.sender, tokenId, ownerOf(tokenId)));
+        require(price > 0, InvalidPrice(price));
         tokenPrices[tokenId] = price;
         emit TokenListed(tokenId, price);
     }
@@ -36,6 +43,7 @@ contract ERC721Listing is ERC721 {
         _transfer(seller, msg.sender, tokenId);
         payable(seller).transfer(price);
         delete tokenPrices[tokenId];
+        emit TokenPurchased(tokenId, msg.sender, price);
     }
 
 

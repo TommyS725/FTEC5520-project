@@ -1,23 +1,23 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-const arrivalModule = buildModule("FlightArrival", (m) => {
+const delayModule = buildModule("FlightDelay", (m) => {
     const router = m.getParameter("router");
     const donID = m.getParameter("donID");
-    const flightArrival = m.contract("FlightArrival",[router, donID]);
+    const flightDelay = m.contract("FlightDelay",[router, donID]);
 
-    return {  flightArrival};
+    return {  flightDelay};
 });
 
 const insuranceModule = buildModule("FlightInsurance", (m) => {
-    const flightArrival = m.useModule(arrivalModule).flightArrival;
+    const flightDelay = m.useModule(delayModule).flightDelay;
     const subscriptionID = m.getParameter("subscriptionID");
-    const flightInsurance = m.contract("FlightInsurance",[flightArrival, subscriptionID]);
+    const flightInsurance = m.contract("FlightInsurance",[flightDelay, subscriptionID]);
     return {  flightInsurance};
 });
 
 export default  buildModule("Flight", (m) => {
-    const flightArrival = m.useModule(arrivalModule).flightArrival;
+    const flightDelay = m.useModule(delayModule).flightDelay;
     const flightInsurance = m.useModule(insuranceModule).flightInsurance;
-    m.call(flightArrival, "setCaller", [flightInsurance,true]);
-    return { flightArrival, flightInsurance };
+    m.call(flightDelay, "setCaller", [flightInsurance,true]);
+    return { flightDelay, flightInsurance };
 });

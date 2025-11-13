@@ -1,0 +1,32 @@
+FROM python:3.11-slim
+
+# Environment
+ENV PYTHONDONTWRITEBYTECODE=1 \
+	PYTHONUNBUFFERED=1 \
+	PORT=8080
+
+WORKDIR /app
+
+# Install system build deps (kept minimal). This helps install some Python wheels that may need compilation.
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends build-essential gcc ca-certificates \
+	&& rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies first (leveraging Docker cache)
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Copy application source
+COPY . /app
+
+# Create a non-root user and use it
+RUN useradd --create-home appuser \
+	&& chown -R appuser:appuser /app
+USER appuser
+
+# Expose the port (informational)
+EXPOSE 8080
+
+# Use sh -c form so $PORT env var is expanded correctly by Cloud Run
+CMD uvicorn app:app --host 0.0.0.0 --port $PORT
+
