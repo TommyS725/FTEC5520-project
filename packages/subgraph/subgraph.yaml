@@ -8,7 +8,7 @@ dataSources:
     name: FlightInsurance
     network: polygon-amoy
     source:
-      address: "0xBBc1Ee274f8f57C8fCfe8d225a703768B7730054"
+      address: "0xbbc1ee274f8f57c8fcfe8d225a703768b7730054"
       abi: FlightInsurance
       startBlock: 29032292
     mapping:
