@@ -19,9 +19,7 @@ struct InsurancePolicy {
 }
 
 struct FlightState {
-    string flightNumber;
-    string departureDate;
-    bool settled;
+    bool settled; // whether the flight has been settled
     uint256[] tokenIds; // list of tokenIds associated with this flight
 }
 
@@ -33,9 +31,9 @@ contract FlightInsurance  is ERC721Listing, Ownable {
     IFlightDelay public immutable flightDelayContract;
     mapping(uint256 policyId => InsurancePolicy) public policies;
     mapping(uint256 tokenId => uint256 policyId) public tokenToPolicy;
-    mapping(bytes32 flightIdHash => FlightState) public flightStates;
+    mapping(bytes32 flightIdHash => FlightState) public flightStates; 
     mapping(uint256 tokenId => bool) public tokenProcessed; // to prevent double payout/release
-    mapping(address relayer => bool) public relayers;
+    mapping(address relayer => bool) public relayers; //relayers to settle flights
 
     //errors 
     error InsufficientContractBalance();
@@ -43,11 +41,10 @@ contract FlightInsurance  is ERC721Listing, Ownable {
     error PolicyExpired();
     error InvalidPolicyState(bool expectedState);
     error InsufficientInventory();
-    error ArrivalTimeNotAvailable(uint256 tokenId);
+    error FlightDataNotFetched(bytes32 flightIdHash);
     error FlightNotDelayed(uint256 tokenId);
     error TokenAlreadyProcessed(uint256 tokenId);
     error FlightAlreadySettled(bytes32 flightIdHash);
-    error FlightNotExists(bytes32 flightIdHash);
     error NotOwnerOrRelayer(address caller);
     error NoInsuranceForFlight(bytes32 flightIdHash);
     error InvalidFlightTokenRequest(uint256 tokenId, bytes32 flightIdHash);
@@ -121,17 +118,14 @@ contract FlightInsurance  is ERC721Listing, Ownable {
         emit TokenProcessed(tokenId, isDelayed ? payout : 0);
     }
 
-    function _requestFlightDelay(string memory flightNumber, string memory flightDate) internal returns (bytes32) {
-        bytes memory flightId = FlightUtils.computeFlightId(flightNumber, flightDate);
-        bytes32 idHash = keccak256(flightId);
+    function _requestFlightDelay(bytes32 flightIdHash) internal returns (bytes32) {
         //no need to check settled, as settled -> flight data already available, which is checked in FlightArrival
-        require(flightStates[idHash].tokenIds.length > 0, NoInsuranceForFlight(idHash));
+        require(flightStates[flightIdHash].tokenIds.length > 0, NoInsuranceForFlight(flightIdHash));
         //event is emitted in FlightArrival contract
         return flightDelayContract.requestFlightDelay(
             subscriptionId,
             msg.sender, 
-            flightNumber, 
-            flightDate
+            flightIdHash
         );
 
     }
@@ -183,13 +177,11 @@ contract FlightInsurance  is ERC721Listing, Ownable {
             price: price,
             open: open
         });
-        if (bytes(flightStates[flightIdHash].flightNumber).length == 0 ) {
-            flightStates[flightIdHash] = FlightState({
-                flightNumber: flightNumber,
-                departureDate: departureDate,
-                settled: false,
-                tokenIds: new uint256[](0)
-            });
+        FlightData memory fd = flightDelayContract.getFlightData(flightIdHash);
+        bool dataExist = bytes(fd.flightNumber).length != 0 && bytes(fd.flightDate).length != 0;
+        if(!dataExist) {
+            //insert flight data if not exists
+            flightDelayContract.insertFlightData(flightNumber, departureDate);
         }
         emit PolicyCreated(
             policyCounter,
@@ -229,12 +221,14 @@ contract FlightInsurance  is ERC721Listing, Ownable {
     }
     
     function requestFlightDataByFlight(string memory flightNumber, string memory departureDate) external onlyOwnerOrRelayer returns (bytes32) {
-        return _requestFlightDelay(flightNumber, departureDate);
+        bytes memory flightId = FlightUtils.computeFlightId(flightNumber, departureDate);
+        bytes32 flightIdHash = keccak256(flightId);
+        return _requestFlightDelay(flightIdHash);
     }
 
     function settleFlight(bytes32 flightIdHash) external onlyOwnerOrRelayer  {
         FlightState storage flightState = flightStates[flightIdHash];
-        uint256[] storage tokenIds = flightState.tokenIds;
+        uint256[] memory tokenIds = flightState.tokenIds;
         if( flightState.settled) {
             revert FlightAlreadySettled(flightIdHash);
         }
@@ -248,9 +242,9 @@ contract FlightInsurance  is ERC721Listing, Ownable {
             }
             uint256 policyId = tokenToPolicy[tokenId];
             InsurancePolicy storage policy = policies[policyId];
-            FlightData memory flightData = flightDelayContract.getFlightDelay(flightIdHash);
-            if (!flightData.exists) {
-                revert ArrivalTimeNotAvailable(tokenId);
+            FlightData memory flightData = flightDelayContract.getFlightData(policy.flightIdHash);
+            if (!flightData.fetched) {
+                revert FlightDataNotFetched(flightIdHash);
             }
             _processToken(tokenId, flightData.delayMinutes >= policy.delayMinutesThreshold);
         }
@@ -262,12 +256,13 @@ contract FlightInsurance  is ERC721Listing, Ownable {
     function purchaseInsurance(uint256 policyId) external payable {
         InsurancePolicy storage policy = policies[policyId];
         FlightState storage flightState = flightStates[policy.flightIdHash];
+
+         // CHECKS
         require(policy.open, InvalidPolicyState(true));
         require(block.timestamp < policy.expirationTimestamp, PolicyExpired());
         require(policy.inventory > 0, InsufficientInventory());
         require(msg.value == policy.price, InvalidPaymentAmount(msg.value, policy.price));
         require(address(this).balance >= requiredReserve + policy.payoutAmount, InsufficientContractBalance());
-        require(bytes(flightState.flightNumber).length > 0 , FlightNotExists(policy.flightIdHash));
         require(!flightState.settled, FlightAlreadySettled(policy.flightIdHash));
 
         // Mint NFT to buyer
@@ -289,9 +284,9 @@ contract FlightInsurance  is ERC721Listing, Ownable {
         uint256 policyId = tokenToPolicy[tokenId];
         InsurancePolicy storage policy = policies[policyId];
 
-        FlightData memory flightData = flightDelayContract.getFlightDelay(policy.flightIdHash);
-        if (!flightData.exists) {
-            revert ArrivalTimeNotAvailable(tokenId);
+        FlightData memory flightData = flightDelayContract.getFlightData(policy.flightIdHash);
+        if (!flightData.fetched) {
+            revert FlightDataNotFetched(policy.flightIdHash);
         }
 
         if (flightData.delayMinutes < policy.delayMinutesThreshold) {
@@ -303,8 +298,7 @@ contract FlightInsurance  is ERC721Listing, Ownable {
     function tokenOwnerRequestFlightData(uint256 tokenId) onlyTokenOwner(tokenId) external returns (bytes32) {
         uint256 policyId = tokenToPolicy[tokenId];
         InsurancePolicy storage policy = policies[policyId];
-        FlightState storage flightState = flightStates[policy.flightIdHash];
-        return _requestFlightDelay(flightState.flightNumber, flightState.departureDate);
+        return _requestFlightDelay(policy.flightIdHash);
     }
     
 

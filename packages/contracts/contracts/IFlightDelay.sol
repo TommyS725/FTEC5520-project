@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
-
+struct Request {
+    bytes32 flightIdHash;
+    bool fulfilled;
+}
 struct FlightData {
+    string flightNumber;
+    string flightDate;
     uint256 delayMinutes;
-    bool exists;
+    bool fetched;
 }   
 
 interface IFlightDelay {
@@ -11,10 +16,9 @@ interface IFlightDelay {
     function requestFlightDelay(
         uint64 subscriptionId,
         address requester,
-        string memory flightNumber,
-        string memory flightDate
+       bytes32 flightIdHash
     ) external  returns (bytes32);
 
-    function getFlightDelay(string memory flightNumber, string memory flightDate) external view returns (FlightData memory);
-    function getFlightDelay(bytes32 flightIdHash) external view returns (FlightData memory);
+    function getFlightData(bytes32 flightIdHash) external view returns (FlightData memory);
+    function insertFlightData(string memory flightNumber, string memory flightDate) external;
 }

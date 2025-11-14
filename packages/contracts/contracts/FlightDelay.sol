@@ -8,11 +8,6 @@ import  "./FlightUtils.sol";
 import "./IFlightDelay.sol";
 // unique identifier for flight arrivals -> flight number + departure date e.g. "AA123-20231015"
 
-struct Request {
-    address requester;
-    bytes32 flightIdHash;
-    bool fulfilled;
-}
 
 
 
@@ -21,7 +16,7 @@ contract FlightDelay is FunctionsClient, ConfirmedOwner, IFlightDelay {
 
     mapping(address caller => bool allowed) callers;
     mapping(bytes32 requestId => Request) requests; 
-    mapping(bytes32 flightIdHash =>  FlightData) flightDelays;
+    mapping(bytes32 flightIdHash =>  FlightData) flightData;
     mapping(bytes32 flightIdHash => uint256 pendingRequestTimestamp) pendingRequests;
 
     //set by constructor, hardcoded depends on network
@@ -76,16 +71,21 @@ contract FlightDelay is FunctionsClient, ConfirmedOwner, IFlightDelay {
     uint256 constant WAITING_PERIOD = 15 minutes;
 
     //errors
+    error MissingFlightData();
     error NotAuthorizedCaller();
     error InvalidRequestId();
     error RequestNotFulfilled();
     error RequestAlreadyPending();
-    error FlightDataAlreadyAvailable();
+    error FlightDataAlreadyFetched();
+    error FlightDataAlreadyExists();
 
     //events
-    event RequestSent(bytes32 indexed requestId, address indexed requester, address indexed caller ,bytes flightId);
-    event RequestFulfilled(bytes32 indexed requestId, address indexed requester, bytes32 indexed flightIdHash, uint256 delay);
-    event RequestFailed(bytes32 indexed requestId, address indexed requester, bytes32 indexed flightIdHash, string errorMessage);
+    event FlightDataCreated(bytes32 indexed flightIdHash, string flightNumber, string flightDate);
+    event FlightDataUpdated(bytes32 indexed flightIdHash, uint256 delayMinutes, bool fetched);
+    event FlightDelayRequested(bytes32 indexed requestId,address caller ,address indexed requester, bytes32 indexed flightIdHash);
+    event FlightDelayFulfilled(bytes32 indexed requestId, bytes32 indexed flightIdHash, uint256 delayMinutes);
+    event FlightDelayError(bytes32 indexed requestId, bytes32 indexed flightIdHash, string errorMessage);
+    
 
 
     // modifiers
@@ -111,56 +111,82 @@ contract FlightDelay is FunctionsClient, ConfirmedOwner, IFlightDelay {
         gasLimit = _gasLimit;
     }
 
-    function getFlightDelay(bytes32 flightIdHash) external view returns (FlightData memory) {
-        return flightDelays[flightIdHash];
-    }
-    function getFlightDelay(string memory flightNumber, string memory flightDate) external view returns (FlightData memory) {
+
+    //force set flight data (for testing or manual overrides)
+    function setFlightData(string memory flightNumber, string memory flightDate, uint256 delayMinutes, bool fetched ) external onlyOwner {
         bytes memory flightId = FlightUtils.computeFlightId(flightNumber, flightDate);
         bytes32 flightIdHash = keccak256(flightId);
-        return flightDelays[flightIdHash];
+        flightData[flightIdHash] = FlightData({
+            flightNumber: flightNumber,
+            flightDate: flightDate,
+            fetched: fetched,
+            delayMinutes: fetched? delayMinutes : 0
+        });
+        emit FlightDataUpdated(flightIdHash, delayMinutes, fetched);
+    }
+
+    function insertFlightData(string memory flightNumber, string memory flightDate) external onlyCallerOrOwner {
+        bytes memory flightId = FlightUtils.computeFlightId(flightNumber, flightDate);
+        bytes32 flightIdHash = keccak256(flightId);
+        if (bytes(flightData[flightIdHash].flightNumber).length != 0) {
+            revert FlightDataAlreadyExists();
+        }
+        flightData[flightIdHash] = FlightData({
+            flightNumber: flightNumber,
+            flightDate: flightDate,
+            delayMinutes: 0,
+            fetched: false
+        });
+        emit FlightDataCreated(flightIdHash, flightNumber, flightDate);
+    }
+
+    function getFlightData(bytes32 flightIdHash) external view returns (FlightData memory) {
+        return flightData[flightIdHash];
     }
 
     function getRequestStatus(bytes32 requestId) external view returns (Request memory) {
-    return requests[requestId];
-}
+        return requests[requestId];
+    }
+
+    function getFlightIdHash(string memory flightNumber, string memory flightDate) external pure returns (bytes32) {
+        bytes memory flightId = FlightUtils.computeFlightId(flightNumber, flightDate);
+        return keccak256(flightId);
+    }
 
     function _requestData(
         uint64 subscriptionId,
         address requester,
-        string memory flightNumber,
-        string memory flightDate 
+        bytes32 flightIdHash
     ) internal returns (bytes32) {
-        bytes memory flightId = FlightUtils.computeFlightId(flightNumber, flightDate);
-        bytes32 flightIdHash = keccak256(flightId);
-        require(!flightDelays[flightIdHash].exists, FlightDataAlreadyAvailable());
+        FlightData memory fd = flightData[flightIdHash];
+        require(bytes(fd.flightNumber).length > 0 && bytes(fd.flightDate).length > 0, MissingFlightData());
+        require(!fd.fetched, FlightDataAlreadyFetched());
         uint256 pendingTimestamp = pendingRequests[flightIdHash];
         require(pendingTimestamp == 0 || block.timestamp >= pendingTimestamp + WAITING_PERIOD, RequestAlreadyPending());
 
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(source); // Initialize the request with JS code
         string[] memory args = new string[](2);
-        args[0] = flightNumber;
-        args[1] = flightDate;
+        args[0] = fd.flightNumber;
+        args[1] = fd.flightDate;
         req.setArgs(args); // Set the flightId as an argument to the JS code
         // Send the request and store the request ID
         bytes32 requestId  = _sendRequest(req.encodeCBOR(), subscriptionId, gasLimit, donID);
+        emit FlightDelayRequested(requestId, msg.sender,requester, flightIdHash);
         requests[requestId] = Request({
-            requester: requester,
-            flightIdHash: keccak256(flightId),
+            flightIdHash: flightIdHash,
             fulfilled: false
         });
         pendingRequests[flightIdHash] = block.timestamp;
-        emit RequestSent(requestId, requester, msg.sender, flightId);
         return requestId;
     }
 
      function requestFlightDelay(
         uint64 subscriptionId,
         address requester,
-        string memory flightNumber,
-        string memory flightDate
+        bytes32 flightIdHash
     ) external onlyCallerOrOwner returns (bytes32) {
-        bytes32 requestId = _requestData(subscriptionId, requester, flightNumber, flightDate);
+        bytes32 requestId = _requestData(subscriptionId, requester, flightIdHash);
         return requestId;
     }
 
@@ -171,21 +197,18 @@ contract FlightDelay is FunctionsClient, ConfirmedOwner, IFlightDelay {
         bytes memory err
     ) internal override {
         Request storage req = requests[requestId];
-        require(req.requester != address(0), InvalidRequestId());
+        FlightData storage fd = flightData[req.flightIdHash];
         require(!req.fulfilled, RequestNotFulfilled());
         req.fulfilled = true;
-        address requester = req.requester;
         bytes32 flightIdHash = req.flightIdHash;
         if(err.length > 0) {
             string memory errorMessage = string(err);
-            emit RequestFailed(requestId, requester, flightIdHash, errorMessage);
+            emit FlightDelayError(requestId, flightIdHash, errorMessage);
         } else {
             uint256 delay = abi.decode(response, (uint256));
-            flightDelays[flightIdHash] = FlightData({
-                delayMinutes: delay,
-                exists: true
-            });
-            emit RequestFulfilled(requestId, requester, flightIdHash, delay);
+            fd.delayMinutes = delay;
+            fd.fetched = true;
+            emit FlightDelayFulfilled(requestId, flightIdHash, delay);
         }
     }
 }
