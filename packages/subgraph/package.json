@@ -1,13 +1,13 @@
 {
-  "name": "ftec-5520-project",
+  "name": "subgraph",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ ftec-5520-project",
-    "create-local": "graph create --node http://localhost:8020/ ftec-5520-project",
-    "remove-local": "graph remove --node http://localhost:8020/ ftec-5520-project",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 ftec-5520-project",
+    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ ftec-5520-project-sepolia",
+    "create-local": "graph create --node http://localhost:8020/ ftec-5520-project-sepolia",
+    "remove-local": "graph remove --node http://localhost:8020/ ftec-5520-project-sepolia",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 ftec-5520-project-sepolia",
     "test": "graph test"
   },
   "dependencies": {

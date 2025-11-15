@@ -22,6 +22,7 @@ export function handlePolicyCreated(event: PolicyCreated): void {
   policy.expiration = event.params.expirationTimestamp
   policy.open = event.params.open
   policy.inventory = event.params.inventory
+  policy.price = event.params.price
   policy.save()
 }
 

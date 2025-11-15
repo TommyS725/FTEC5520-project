@@ -1,12 +1,11 @@
 {
-  "polygon-amoy": {
-    "FlightInsurance": {
-      "address": "0xbbc1ee274f8f57c8fcfe8d225a703768b7730054",
-      "startBlock": 29032292
-    },
+  "sepolia": {
     "FlightDelay": {
-      "address": "0xf7aa8d6420f37adf5cb07ebd4ee6095cd7b9ff7e",
-      "startBlock": 29032285
+      "address": "0xDcd68a556A9Ce0258eB51EE61743EC9d62A3ddA0",
+      "startBlock": 9633556
+    },
+    "FlightInsurance": {
+      "address": "0xE819a66D92eF221f5544508831D9Bc275cbc701E"
     }
   }
 }

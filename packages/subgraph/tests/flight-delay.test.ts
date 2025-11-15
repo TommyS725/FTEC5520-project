@@ -7,8 +7,8 @@ import {
   afterAll
 } from "matchstick-as/assembly/index"
 import { Bytes, BigInt, Address } from "@graphprotocol/graph-ts"
-import { FlightDataCreated } from "../generated/schema"
-import { FlightDataCreated as FlightDataCreatedEvent } from "../generated/FlightDelay/FlightDelay"
+import { ExampleEntity } from "../generated/schema"
+import { FlightDataCreated } from "../generated/FlightDelay/FlightDelay"
 import { handleFlightDataCreated } from "../src/flight-delay"
 import { createFlightDataCreatedEvent } from "./flight-delay-utils"
 
@@ -35,25 +35,25 @@ describe("Describe entity assertions", () => {
   // For more test scenarios, see:
   // https://thegraph.com/docs/en/developer/matchstick/#write-a-unit-test
 
-  test("FlightDataCreated created and stored", () => {
-    assert.entityCount("FlightDataCreated", 1)
+  test("ExampleEntity created and stored", () => {
+    assert.entityCount("ExampleEntity", 1)
 
     // 0xa16081f360e3847006db660bae1c6d1b2e17ec2a is the default address used in newMockEvent() function
     assert.fieldEquals(
-      "FlightDataCreated",
-      "0xa16081f360e3847006db660bae1c6d1b2e17ec2a-1",
+      "ExampleEntity",
+      "0xa16081f360e3847006db660bae1c6d1b2e17ec2a",
       "flightIdHash",
       "1234567890"
     )
     assert.fieldEquals(
-      "FlightDataCreated",
-      "0xa16081f360e3847006db660bae1c6d1b2e17ec2a-1",
+      "ExampleEntity",
+      "0xa16081f360e3847006db660bae1c6d1b2e17ec2a",
       "flightNumber",
       "Example string value"
     )
     assert.fieldEquals(
-      "FlightDataCreated",
-      "0xa16081f360e3847006db660bae1c6d1b2e17ec2a-1",
+      "ExampleEntity",
+      "0xa16081f360e3847006db660bae1c6d1b2e17ec2a",
       "flightDate",
       "Example string value"
     )
