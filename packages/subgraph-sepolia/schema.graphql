@@ -1,6 +1,31 @@
-type ExampleEntity @entity {
+
+type Flight @entity {
   id: Bytes!
-  count: BigInt!
-  flightIdHash: Bytes! # bytes32
-  flightNumber: String! # string
+  flightNumber: String!
+  flightDate: String!
+  settled: Boolean!
+  delay: BigInt # Optional, null if not fetched yet
+  requestedAt: BigInt # Timestamp when delay data was requested, null when not requested or error occurred
+  policies: [Policy!]! @derivedFrom(field: "flight")
+}
+
+
+type Policy @entity {
+  id: ID!
+  flight: Flight!
+  payout: BigInt!
+  delayThreshold: BigInt!
+  expiration: BigInt!
+  inventory: BigInt!
+  open: Boolean!
+  price: BigInt!
+  insuredTokens: [InsuranceToken!]! @derivedFrom(field: "policy")
+}
+
+type InsuranceToken @entity {
+  id:  ID!
+  owner: Bytes!
+  policy: Policy!
+  processed: Boolean!
+  listedPrice: BigInt # Optional field for marketplace listing, null if not listed
 }
