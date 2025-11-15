@@ -16,34 +16,19 @@ dataSources:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - Approval
-        - ApprovalForAll
-        - FlightSettled
-        - InsurancePurchased
-        - OwnershipTransferred
-        - PolicyCreated
-        - PolicyStatusChanged
-        - TokenListed
-        - TokenProcessed
-        - TokenPurchased
-        - TokenUnlisted
-        - Transfer
-        - Withdrawal
+        - Flight
+        - Policy
+        - InsuranceToken
       abis:
         - name: FlightInsurance
           file: ./abis/FlightInsurance.json
       eventHandlers:
-        - event: Approval(indexed address,indexed address,indexed uint256)
-          handler: handleApproval
-        - event: ApprovalForAll(indexed address,indexed address,bool)
-          handler: handleApprovalForAll
         - event: FlightSettled(indexed bytes32)
           handler: handleFlightSettled
         - event: InsurancePurchased(indexed uint256,indexed uint256,indexed address)
           handler: handleInsurancePurchased
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
-        - event: PolicyCreated(indexed uint256,string,string,bytes32,uint256,uint256,uint256,uint32,uint256,bool)
+        - event: PolicyCreated(indexed
+            uint256,string,string,bytes32,uint256,uint256,uint256,uint32,uint256,bool)
           handler: handlePolicyCreated
         - event: PolicyStatusChanged(indexed uint256,bool)
           handler: handlePolicyStatusChanged
@@ -57,6 +42,34 @@ dataSources:
           handler: handleTokenUnlisted
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
-        - event: Withdrawal(indexed address,uint256)
-          handler: handleWithdrawal
       file: ./src/flight-insurance.ts
+  - kind: ethereum
+    name: FlightDelay
+    network: polygon-amoy
+    source:
+      address: "0xf7aa8d6420f37adf5cb07ebd4ee6095cd7b9ff7e"
+      abi: FlightDelay
+      startBlock: 29032285
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Flight
+        - Policy
+        - InsuranceToken
+      abis:
+        - name: FlightDelay
+          file: ./abis/FlightDelay.json
+      eventHandlers:
+        - event: FlightDataCreated(indexed bytes32,string,string)
+          handler: handleFlightDataCreated
+        - event: FlightDataUpdated(indexed bytes32,uint256,bool)
+          handler: handleFlightDataUpdated
+        - event: FlightDelayError(indexed bytes32,indexed bytes32,string)
+          handler: handleFlightDelayError
+        - event: FlightDelayFulfilled(indexed bytes32,indexed bytes32,uint256)
+          handler: handleFlightDelayFulfilled
+        - event: FlightDelayRequested(indexed bytes32,address,indexed address,indexed bytes32)
+          handler: handleFlightDelayRequested
+      file: ./src/flight-delay.ts

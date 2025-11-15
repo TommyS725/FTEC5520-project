@@ -1,0 +1,6 @@
+type ExampleEntity @entity {
+  id: Bytes!
+  count: BigInt!
+  flightIdHash: Bytes! # bytes32
+  flightNumber: String! # string
+}

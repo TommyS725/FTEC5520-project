@@ -1,0 +1,50 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: FlightDelay
+    network: sepolia
+    source:
+      address: "0xDcd68a556A9Ce0258eB51EE61743EC9d62A3ddA0"
+      abi: FlightDelay
+      startBlock: 9633556
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - FlightDataCreated
+        - FlightDataUpdated
+        - FlightDelayError
+        - FlightDelayFulfilled
+        - FlightDelayRequested
+        - OwnershipTransferRequested
+        - OwnershipTransferred
+        - RequestFulfilled
+        - RequestSent
+      abis:
+        - name: FlightDelay
+          file: ./abis/FlightDelay.json
+      eventHandlers:
+        - event: FlightDataCreated(indexed bytes32,string,string)
+          handler: handleFlightDataCreated
+        - event: FlightDataUpdated(indexed bytes32,uint256,bool)
+          handler: handleFlightDataUpdated
+        - event: FlightDelayError(indexed bytes32,indexed bytes32,string)
+          handler: handleFlightDelayError
+        - event: FlightDelayFulfilled(indexed bytes32,indexed bytes32,uint256)
+          handler: handleFlightDelayFulfilled
+        - event: FlightDelayRequested(indexed bytes32,address,indexed address,indexed bytes32)
+          handler: handleFlightDelayRequested
+        - event: OwnershipTransferRequested(indexed address,indexed address)
+          handler: handleOwnershipTransferRequested
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: RequestFulfilled(indexed bytes32)
+          handler: handleRequestFulfilled
+        - event: RequestSent(indexed bytes32)
+          handler: handleRequestSent
+      file: ./src/flight-delay.ts
