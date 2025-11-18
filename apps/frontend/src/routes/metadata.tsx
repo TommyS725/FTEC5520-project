@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card"
 import { useMetadata } from '@/providers/metadata'
 import { explorerLink } from '@/lib/utils';
-import { FlightInsurance } from '@/lib/contracts';
+import { FlightDelay, FlightInsurance } from '@/lib/contracts';
 
 export const Route = createFileRoute('/metadata')({
     component: RouteComponent,
@@ -113,12 +113,12 @@ function RouteComponent() {
 
                     <p className="mb-6 mt-4">
                         <a
-                            href={explorerLink(FlightInsurance.address, "address")}
+                            href={explorerLink(FlightDelay.address, "address")}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600"
                         >
-                            {FlightInsurance.address}
+                            {FlightDelay.address}
                         </a>
                     </p>
                 </CardContent>
