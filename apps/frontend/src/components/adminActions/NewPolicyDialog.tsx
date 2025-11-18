@@ -10,12 +10,14 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useNewPolicyMutation } from "@/action/policy";
+import { policyQueryOptions, useNewPolicyMutation } from "@/action/policy";
 import { useReducer } from "react";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { parseEther } from "viem";
+import { formatEther, parseEther } from "viem";
+import { useQuery } from "@tanstack/react-query";
 
 interface InputState {
+    copyFrom: string;
     flightNumber: string;
     flightDate: string;
     delayThreshold: string;
@@ -27,6 +29,7 @@ interface InputState {
 }
 
 type InputAction =
+    | { type: "SET_COPY_FROM"; payload: string }
     | { type: "SET_FLIGHT_NUMBER"; payload: string }
     | { type: "SET_FLIGHT_DATE"; payload: string }
     | { type: "SET_DELAY_THRESHOLD"; payload: string }
@@ -37,6 +40,7 @@ type InputAction =
     | { type: "SET_OPEN"; payload: boolean };
 
 const initialInputState: InputState = {
+    copyFrom: "",
     flightNumber: "",
     flightDate: "",
     delayThreshold: "",
@@ -50,6 +54,8 @@ const initialInputState: InputState = {
 
 const inputReducer = (state: InputState, action: InputAction): InputState => {
     switch (action.type) {
+        case "SET_COPY_FROM":
+            return { ...state, copyFrom: action.payload };
         case "SET_FLIGHT_NUMBER":
             return { ...state, flightNumber: action.payload };
         case "SET_FLIGHT_DATE":
@@ -78,6 +84,11 @@ interface NewPolicyDialogProps {
 
 export default function NewPolicyDialog({ open: dialogOpen, onOpenChange }: NewPolicyDialogProps) {
     const [state, dispatch] = useReducer(inputReducer, initialInputState);
+    const policyCopyFromQuery = useQuery({
+        ...policyQueryOptions(),
+        enabled: state.copyFrom !== "",
+        select: (data) => data.policies.find(p => p.id === state.copyFrom),
+    });
     const {
         flightNumber,
         flightDate,
@@ -109,6 +120,20 @@ export default function NewPolicyDialog({ open: dialogOpen, onOpenChange }: NewP
         dispatch({ type: "SET_PRICE", payload: "" });
         dispatch({ type: "SET_OPEN", payload: true });
     }
+
+    const copyOnclick = () => {
+        if (policyCopyFromQuery.data) {
+            const policy = policyCopyFromQuery.data;
+            dispatch({ type: "SET_FLIGHT_NUMBER", payload: policy.flight.flightNumber });
+            dispatch({ type: "SET_FLIGHT_DATE", payload: policy.flight.flightDate });
+            dispatch({ type: "SET_DELAY_THRESHOLD", payload: policy.delayThreshold.toString() });
+            dispatch({ type: "SET_EXPIRATION_TS", payload: new Date(Number(policy.expiration) * 1000) });
+            dispatch({ type: "SET_PAYOUT", payload: formatEther(BigInt(policy.payout)).toString() });
+            dispatch({ type: "SET_INVENTORY", payload: policy.inventory.toString() });
+            dispatch({ type: "SET_PRICE", payload: formatEther(BigInt(policy.price)).toString() });
+            dispatch({ type: "SET_OPEN", payload: policy.open });
+        }
+    }
     return (<Dialog
         open={dialogOpen}
         onOpenChange={onOpenChange}
@@ -123,6 +148,31 @@ export default function NewPolicyDialog({ open: dialogOpen, onOpenChange }: NewP
                 </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 grid-cols-2">
+                <div className="grid gap-3 col-span-2">
+                    <Label htmlFor="copyFrom">Copy From Existing Policy (optional)</Label>
+                    <div
+                        className="flex space-x-2 items-center "
+                    >
+
+                        <Input
+                            id="copyFrom"
+                            name="copyFrom"
+                            value={state.copyFrom}
+                            placeholder="Policy ID"
+                            onChange={(e) =>
+                                dispatch({ type: "SET_COPY_FROM", payload: e.target.value })
+                            }
+                        />
+                        <Button
+                            variant="secondary"
+                            disabled={!policyCopyFromQuery.data}
+                            onClick={copyOnclick}
+                        >
+                            Copy
+                        </Button>
+                    </div>
+
+                </div>
                 <div className="grid gap-3">
                     <Label htmlFor="flightNumber">Flight Number</Label>
                     <Input
