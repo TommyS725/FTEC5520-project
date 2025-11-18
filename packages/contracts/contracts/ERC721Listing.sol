@@ -27,7 +27,7 @@ contract ERC721Listing is ERC721 {
         tokenPrices[tokenId] = price;
         emit TokenListed(tokenId, price);
     }
-
+    //todo: should check if token is listed
     function unlistToken(uint256 tokenId) external {
         require(ownerOf(tokenId) == msg.sender, ERC721IncorrectOwner(msg.sender, tokenId, ownerOf(tokenId)));
         delete tokenPrices[tokenId];
@@ -45,6 +45,6 @@ contract ERC721Listing is ERC721 {
         delete tokenPrices[tokenId];
         emit TokenPurchased(tokenId, msg.sender, price);
     }
-
+    //todo: transfer should reset listing
 
 }

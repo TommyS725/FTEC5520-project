@@ -1,11 +1,11 @@
 {
-  "sepolia": {
-    "FlightDelay": {
-      "address": "0xDcd68a556A9Ce0258eB51EE61743EC9d62A3ddA0",
-      "startBlock": 9633556
-    },
-    "FlightInsurance": {
-      "address": "0xE819a66D92eF221f5544508831D9Bc275cbc701E"
-    }
-  }
+	"sepolia": {
+		"FlightDelay": {
+			"address": "0xDcd68a556A9Ce0258eB51EE61743EC9d62A3ddA0",
+			"startBlock": 9633556
+		},
+		"FlightInsurance": {
+			"address": "0xE819a66D92eF221f5544508831D9Bc275cbc701E"
+		}
+	}
 }

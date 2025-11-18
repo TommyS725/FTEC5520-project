@@ -1,8 +1,9 @@
 import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
+import hardhatTypechain from "@nomicfoundation/hardhat-typechain";
 import { configVariable, defineConfig } from "hardhat/config";
 
 export default defineConfig({
-  plugins: [hardhatToolboxViemPlugin],
+  plugins: [hardhatToolboxViemPlugin, hardhatTypechain],
   solidity: {
     profiles: {
       default: {
@@ -34,12 +35,12 @@ export default defineConfig({
       url: configVariable("SEPOLIA_RPC_URL"),
       accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
     },
-    amoy:{
+    amoy: {
       type: "http",
       chainType: "op",
       url: configVariable("AMOY_RPC_URL"),
       accounts: [configVariable("AMOY_PRIVATE_KEY")],
-    }
+    },
   },
   verify: {
     etherscan: {

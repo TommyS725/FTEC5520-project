@@ -219,7 +219,7 @@ contract FlightInsurance  is ERC721Listing, Ownable {
         payable(owner()).transfer(amount);
         emit Withdrawal(owner(), amount);
     }
-    
+    //todo should update to use flightIdHash directly
     function requestFlightDataByFlight(string memory flightNumber, string memory departureDate) external onlyOwnerOrRelayer returns (bytes32) {
         bytes memory flightId = FlightUtils.computeFlightId(flightNumber, departureDate);
         bytes32 flightIdHash = keccak256(flightId);

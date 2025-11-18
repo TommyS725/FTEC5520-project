@@ -1,353 +1,365 @@
-import { newMockEvent } from "matchstick-as"
-import { ethereum, Address, BigInt, Bytes } from "@graphprotocol/graph-ts"
 import {
-  Approval,
-  ApprovalForAll,
-  FlightSettled,
-  InsurancePurchased,
-  OwnershipTransferred,
-  PolicyCreated,
-  PolicyStatusChanged,
-  TokenListed,
-  TokenProcessed,
-  TokenPurchased,
-  TokenUnlisted,
-  Transfer,
-  Withdrawal
-} from "../generated/FlightInsurance/FlightInsurance"
+	type Address,
+	type BigInt,
+	type Bytes,
+	ethereum,
+} from "@graphprotocol/graph-ts";
+import { newMockEvent } from "matchstick-as";
+import type {
+	Approval,
+	ApprovalForAll,
+	FlightSettled,
+	InsurancePurchased,
+	OwnershipTransferred,
+	PolicyCreated,
+	PolicyStatusChanged,
+	TokenListed,
+	TokenProcessed,
+	TokenPurchased,
+	TokenUnlisted,
+	Transfer,
+	Withdrawal,
+} from "../generated/FlightInsurance/FlightInsurance";
 
 export function createApprovalEvent(
-  owner: Address,
-  approved: Address,
-  tokenId: BigInt
+	owner: Address,
+	approved: Address,
+	tokenId: BigInt,
 ): Approval {
-  let approvalEvent = changetype<Approval>(newMockEvent())
+	const approvalEvent = changetype<Approval>(newMockEvent());
 
-  approvalEvent.parameters = new Array()
+	approvalEvent.parameters = [];
 
-  approvalEvent.parameters.push(
-    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner))
-  )
-  approvalEvent.parameters.push(
-    new ethereum.EventParam("approved", ethereum.Value.fromAddress(approved))
-  )
-  approvalEvent.parameters.push(
-    new ethereum.EventParam(
-      "tokenId",
-      ethereum.Value.fromUnsignedBigInt(tokenId)
-    )
-  )
+	approvalEvent.parameters.push(
+		new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner)),
+	);
+	approvalEvent.parameters.push(
+		new ethereum.EventParam("approved", ethereum.Value.fromAddress(approved)),
+	);
+	approvalEvent.parameters.push(
+		new ethereum.EventParam(
+			"tokenId",
+			ethereum.Value.fromUnsignedBigInt(tokenId),
+		),
+	);
 
-  return approvalEvent
+	return approvalEvent;
 }
 
 export function createApprovalForAllEvent(
-  owner: Address,
-  operator: Address,
-  approved: boolean
+	owner: Address,
+	operator: Address,
+	approved: boolean,
 ): ApprovalForAll {
-  let approvalForAllEvent = changetype<ApprovalForAll>(newMockEvent())
+	const approvalForAllEvent = changetype<ApprovalForAll>(newMockEvent());
 
-  approvalForAllEvent.parameters = new Array()
+	approvalForAllEvent.parameters = [];
 
-  approvalForAllEvent.parameters.push(
-    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner))
-  )
-  approvalForAllEvent.parameters.push(
-    new ethereum.EventParam("operator", ethereum.Value.fromAddress(operator))
-  )
-  approvalForAllEvent.parameters.push(
-    new ethereum.EventParam("approved", ethereum.Value.fromBoolean(approved))
-  )
+	approvalForAllEvent.parameters.push(
+		new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner)),
+	);
+	approvalForAllEvent.parameters.push(
+		new ethereum.EventParam("operator", ethereum.Value.fromAddress(operator)),
+	);
+	approvalForAllEvent.parameters.push(
+		new ethereum.EventParam("approved", ethereum.Value.fromBoolean(approved)),
+	);
 
-  return approvalForAllEvent
+	return approvalForAllEvent;
 }
 
 export function createFlightSettledEvent(flightIdHash: Bytes): FlightSettled {
-  let flightSettledEvent = changetype<FlightSettled>(newMockEvent())
+	const flightSettledEvent = changetype<FlightSettled>(newMockEvent());
 
-  flightSettledEvent.parameters = new Array()
+	flightSettledEvent.parameters = [];
 
-  flightSettledEvent.parameters.push(
-    new ethereum.EventParam(
-      "flightIdHash",
-      ethereum.Value.fromFixedBytes(flightIdHash)
-    )
-  )
+	flightSettledEvent.parameters.push(
+		new ethereum.EventParam(
+			"flightIdHash",
+			ethereum.Value.fromFixedBytes(flightIdHash),
+		),
+	);
 
-  return flightSettledEvent
+	return flightSettledEvent;
 }
 
 export function createInsurancePurchasedEvent(
-  tokenId: BigInt,
-  policyId: BigInt,
-  buyer: Address
+	tokenId: BigInt,
+	policyId: BigInt,
+	buyer: Address,
 ): InsurancePurchased {
-  let insurancePurchasedEvent = changetype<InsurancePurchased>(newMockEvent())
+	const insurancePurchasedEvent = changetype<InsurancePurchased>(
+		newMockEvent(),
+	);
 
-  insurancePurchasedEvent.parameters = new Array()
+	insurancePurchasedEvent.parameters = [];
 
-  insurancePurchasedEvent.parameters.push(
-    new ethereum.EventParam(
-      "tokenId",
-      ethereum.Value.fromUnsignedBigInt(tokenId)
-    )
-  )
-  insurancePurchasedEvent.parameters.push(
-    new ethereum.EventParam(
-      "policyId",
-      ethereum.Value.fromUnsignedBigInt(policyId)
-    )
-  )
-  insurancePurchasedEvent.parameters.push(
-    new ethereum.EventParam("buyer", ethereum.Value.fromAddress(buyer))
-  )
+	insurancePurchasedEvent.parameters.push(
+		new ethereum.EventParam(
+			"tokenId",
+			ethereum.Value.fromUnsignedBigInt(tokenId),
+		),
+	);
+	insurancePurchasedEvent.parameters.push(
+		new ethereum.EventParam(
+			"policyId",
+			ethereum.Value.fromUnsignedBigInt(policyId),
+		),
+	);
+	insurancePurchasedEvent.parameters.push(
+		new ethereum.EventParam("buyer", ethereum.Value.fromAddress(buyer)),
+	);
 
-  return insurancePurchasedEvent
+	return insurancePurchasedEvent;
 }
 
 export function createOwnershipTransferredEvent(
-  previousOwner: Address,
-  newOwner: Address
+	previousOwner: Address,
+	newOwner: Address,
 ): OwnershipTransferred {
-  let ownershipTransferredEvent = changetype<OwnershipTransferred>(
-    newMockEvent()
-  )
+	const ownershipTransferredEvent = changetype<OwnershipTransferred>(
+		newMockEvent(),
+	);
 
-  ownershipTransferredEvent.parameters = new Array()
+	ownershipTransferredEvent.parameters = [];
 
-  ownershipTransferredEvent.parameters.push(
-    new ethereum.EventParam(
-      "previousOwner",
-      ethereum.Value.fromAddress(previousOwner)
-    )
-  )
-  ownershipTransferredEvent.parameters.push(
-    new ethereum.EventParam("newOwner", ethereum.Value.fromAddress(newOwner))
-  )
+	ownershipTransferredEvent.parameters.push(
+		new ethereum.EventParam(
+			"previousOwner",
+			ethereum.Value.fromAddress(previousOwner),
+		),
+	);
+	ownershipTransferredEvent.parameters.push(
+		new ethereum.EventParam("newOwner", ethereum.Value.fromAddress(newOwner)),
+	);
 
-  return ownershipTransferredEvent
+	return ownershipTransferredEvent;
 }
 
 export function createPolicyCreatedEvent(
-  policyId: BigInt,
-  flightNumber: string,
-  departureDate: string,
-  flightIdHash: Bytes,
-  delayMinutesThreshold: BigInt,
-  expirationTimestamp: BigInt,
-  payoutAmount: BigInt,
-  inventory: BigInt,
-  price: BigInt,
-  open: boolean
+	policyId: BigInt,
+	flightNumber: string,
+	departureDate: string,
+	flightIdHash: Bytes,
+	delayMinutesThreshold: BigInt,
+	expirationTimestamp: BigInt,
+	payoutAmount: BigInt,
+	inventory: BigInt,
+	price: BigInt,
+	open: boolean,
 ): PolicyCreated {
-  let policyCreatedEvent = changetype<PolicyCreated>(newMockEvent())
+	const policyCreatedEvent = changetype<PolicyCreated>(newMockEvent());
 
-  policyCreatedEvent.parameters = new Array()
+	policyCreatedEvent.parameters = [];
 
-  policyCreatedEvent.parameters.push(
-    new ethereum.EventParam(
-      "policyId",
-      ethereum.Value.fromUnsignedBigInt(policyId)
-    )
-  )
-  policyCreatedEvent.parameters.push(
-    new ethereum.EventParam(
-      "flightNumber",
-      ethereum.Value.fromString(flightNumber)
-    )
-  )
-  policyCreatedEvent.parameters.push(
-    new ethereum.EventParam(
-      "departureDate",
-      ethereum.Value.fromString(departureDate)
-    )
-  )
-  policyCreatedEvent.parameters.push(
-    new ethereum.EventParam(
-      "flightIdHash",
-      ethereum.Value.fromFixedBytes(flightIdHash)
-    )
-  )
-  policyCreatedEvent.parameters.push(
-    new ethereum.EventParam(
-      "delayMinutesThreshold",
-      ethereum.Value.fromUnsignedBigInt(delayMinutesThreshold)
-    )
-  )
-  policyCreatedEvent.parameters.push(
-    new ethereum.EventParam(
-      "expirationTimestamp",
-      ethereum.Value.fromUnsignedBigInt(expirationTimestamp)
-    )
-  )
-  policyCreatedEvent.parameters.push(
-    new ethereum.EventParam(
-      "payoutAmount",
-      ethereum.Value.fromUnsignedBigInt(payoutAmount)
-    )
-  )
-  policyCreatedEvent.parameters.push(
-    new ethereum.EventParam(
-      "inventory",
-      ethereum.Value.fromUnsignedBigInt(inventory)
-    )
-  )
-  policyCreatedEvent.parameters.push(
-    new ethereum.EventParam("price", ethereum.Value.fromUnsignedBigInt(price))
-  )
-  policyCreatedEvent.parameters.push(
-    new ethereum.EventParam("open", ethereum.Value.fromBoolean(open))
-  )
+	policyCreatedEvent.parameters.push(
+		new ethereum.EventParam(
+			"policyId",
+			ethereum.Value.fromUnsignedBigInt(policyId),
+		),
+	);
+	policyCreatedEvent.parameters.push(
+		new ethereum.EventParam(
+			"flightNumber",
+			ethereum.Value.fromString(flightNumber),
+		),
+	);
+	policyCreatedEvent.parameters.push(
+		new ethereum.EventParam(
+			"departureDate",
+			ethereum.Value.fromString(departureDate),
+		),
+	);
+	policyCreatedEvent.parameters.push(
+		new ethereum.EventParam(
+			"flightIdHash",
+			ethereum.Value.fromFixedBytes(flightIdHash),
+		),
+	);
+	policyCreatedEvent.parameters.push(
+		new ethereum.EventParam(
+			"delayMinutesThreshold",
+			ethereum.Value.fromUnsignedBigInt(delayMinutesThreshold),
+		),
+	);
+	policyCreatedEvent.parameters.push(
+		new ethereum.EventParam(
+			"expirationTimestamp",
+			ethereum.Value.fromUnsignedBigInt(expirationTimestamp),
+		),
+	);
+	policyCreatedEvent.parameters.push(
+		new ethereum.EventParam(
+			"payoutAmount",
+			ethereum.Value.fromUnsignedBigInt(payoutAmount),
+		),
+	);
+	policyCreatedEvent.parameters.push(
+		new ethereum.EventParam(
+			"inventory",
+			ethereum.Value.fromUnsignedBigInt(inventory),
+		),
+	);
+	policyCreatedEvent.parameters.push(
+		new ethereum.EventParam("price", ethereum.Value.fromUnsignedBigInt(price)),
+	);
+	policyCreatedEvent.parameters.push(
+		new ethereum.EventParam("open", ethereum.Value.fromBoolean(open)),
+	);
 
-  return policyCreatedEvent
+	return policyCreatedEvent;
 }
 
 export function createPolicyStatusChangedEvent(
-  policyId: BigInt,
-  open: boolean
+	policyId: BigInt,
+	open: boolean,
 ): PolicyStatusChanged {
-  let policyStatusChangedEvent = changetype<PolicyStatusChanged>(newMockEvent())
+	const policyStatusChangedEvent = changetype<PolicyStatusChanged>(
+		newMockEvent(),
+	);
 
-  policyStatusChangedEvent.parameters = new Array()
+	policyStatusChangedEvent.parameters = [];
 
-  policyStatusChangedEvent.parameters.push(
-    new ethereum.EventParam(
-      "policyId",
-      ethereum.Value.fromUnsignedBigInt(policyId)
-    )
-  )
-  policyStatusChangedEvent.parameters.push(
-    new ethereum.EventParam("open", ethereum.Value.fromBoolean(open))
-  )
+	policyStatusChangedEvent.parameters.push(
+		new ethereum.EventParam(
+			"policyId",
+			ethereum.Value.fromUnsignedBigInt(policyId),
+		),
+	);
+	policyStatusChangedEvent.parameters.push(
+		new ethereum.EventParam("open", ethereum.Value.fromBoolean(open)),
+	);
 
-  return policyStatusChangedEvent
+	return policyStatusChangedEvent;
 }
 
 export function createTokenListedEvent(
-  tokenId: BigInt,
-  price: BigInt
+	tokenId: BigInt,
+	price: BigInt,
 ): TokenListed {
-  let tokenListedEvent = changetype<TokenListed>(newMockEvent())
+	const tokenListedEvent = changetype<TokenListed>(newMockEvent());
 
-  tokenListedEvent.parameters = new Array()
+	tokenListedEvent.parameters = [];
 
-  tokenListedEvent.parameters.push(
-    new ethereum.EventParam(
-      "tokenId",
-      ethereum.Value.fromUnsignedBigInt(tokenId)
-    )
-  )
-  tokenListedEvent.parameters.push(
-    new ethereum.EventParam("price", ethereum.Value.fromUnsignedBigInt(price))
-  )
+	tokenListedEvent.parameters.push(
+		new ethereum.EventParam(
+			"tokenId",
+			ethereum.Value.fromUnsignedBigInt(tokenId),
+		),
+	);
+	tokenListedEvent.parameters.push(
+		new ethereum.EventParam("price", ethereum.Value.fromUnsignedBigInt(price)),
+	);
 
-  return tokenListedEvent
+	return tokenListedEvent;
 }
 
 export function createTokenProcessedEvent(
-  tokenId: BigInt,
-  payoutAmount: BigInt
+	tokenId: BigInt,
+	payoutAmount: BigInt,
 ): TokenProcessed {
-  let tokenProcessedEvent = changetype<TokenProcessed>(newMockEvent())
+	const tokenProcessedEvent = changetype<TokenProcessed>(newMockEvent());
 
-  tokenProcessedEvent.parameters = new Array()
+	tokenProcessedEvent.parameters = [];
 
-  tokenProcessedEvent.parameters.push(
-    new ethereum.EventParam(
-      "tokenId",
-      ethereum.Value.fromUnsignedBigInt(tokenId)
-    )
-  )
-  tokenProcessedEvent.parameters.push(
-    new ethereum.EventParam(
-      "payoutAmount",
-      ethereum.Value.fromUnsignedBigInt(payoutAmount)
-    )
-  )
+	tokenProcessedEvent.parameters.push(
+		new ethereum.EventParam(
+			"tokenId",
+			ethereum.Value.fromUnsignedBigInt(tokenId),
+		),
+	);
+	tokenProcessedEvent.parameters.push(
+		new ethereum.EventParam(
+			"payoutAmount",
+			ethereum.Value.fromUnsignedBigInt(payoutAmount),
+		),
+	);
 
-  return tokenProcessedEvent
+	return tokenProcessedEvent;
 }
 
 export function createTokenPurchasedEvent(
-  tokenId: BigInt,
-  buyer: Address,
-  price: BigInt
+	tokenId: BigInt,
+	buyer: Address,
+	price: BigInt,
 ): TokenPurchased {
-  let tokenPurchasedEvent = changetype<TokenPurchased>(newMockEvent())
+	const tokenPurchasedEvent = changetype<TokenPurchased>(newMockEvent());
 
-  tokenPurchasedEvent.parameters = new Array()
+	tokenPurchasedEvent.parameters = [];
 
-  tokenPurchasedEvent.parameters.push(
-    new ethereum.EventParam(
-      "tokenId",
-      ethereum.Value.fromUnsignedBigInt(tokenId)
-    )
-  )
-  tokenPurchasedEvent.parameters.push(
-    new ethereum.EventParam("buyer", ethereum.Value.fromAddress(buyer))
-  )
-  tokenPurchasedEvent.parameters.push(
-    new ethereum.EventParam("price", ethereum.Value.fromUnsignedBigInt(price))
-  )
+	tokenPurchasedEvent.parameters.push(
+		new ethereum.EventParam(
+			"tokenId",
+			ethereum.Value.fromUnsignedBigInt(tokenId),
+		),
+	);
+	tokenPurchasedEvent.parameters.push(
+		new ethereum.EventParam("buyer", ethereum.Value.fromAddress(buyer)),
+	);
+	tokenPurchasedEvent.parameters.push(
+		new ethereum.EventParam("price", ethereum.Value.fromUnsignedBigInt(price)),
+	);
 
-  return tokenPurchasedEvent
+	return tokenPurchasedEvent;
 }
 
 export function createTokenUnlistedEvent(tokenId: BigInt): TokenUnlisted {
-  let tokenUnlistedEvent = changetype<TokenUnlisted>(newMockEvent())
+	const tokenUnlistedEvent = changetype<TokenUnlisted>(newMockEvent());
 
-  tokenUnlistedEvent.parameters = new Array()
+	tokenUnlistedEvent.parameters = [];
 
-  tokenUnlistedEvent.parameters.push(
-    new ethereum.EventParam(
-      "tokenId",
-      ethereum.Value.fromUnsignedBigInt(tokenId)
-    )
-  )
+	tokenUnlistedEvent.parameters.push(
+		new ethereum.EventParam(
+			"tokenId",
+			ethereum.Value.fromUnsignedBigInt(tokenId),
+		),
+	);
 
-  return tokenUnlistedEvent
+	return tokenUnlistedEvent;
 }
 
 export function createTransferEvent(
-  from: Address,
-  to: Address,
-  tokenId: BigInt
+	from: Address,
+	to: Address,
+	tokenId: BigInt,
 ): Transfer {
-  let transferEvent = changetype<Transfer>(newMockEvent())
+	const transferEvent = changetype<Transfer>(newMockEvent());
 
-  transferEvent.parameters = new Array()
+	transferEvent.parameters = [];
 
-  transferEvent.parameters.push(
-    new ethereum.EventParam("from", ethereum.Value.fromAddress(from))
-  )
-  transferEvent.parameters.push(
-    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
-  )
-  transferEvent.parameters.push(
-    new ethereum.EventParam(
-      "tokenId",
-      ethereum.Value.fromUnsignedBigInt(tokenId)
-    )
-  )
+	transferEvent.parameters.push(
+		new ethereum.EventParam("from", ethereum.Value.fromAddress(from)),
+	);
+	transferEvent.parameters.push(
+		new ethereum.EventParam("to", ethereum.Value.fromAddress(to)),
+	);
+	transferEvent.parameters.push(
+		new ethereum.EventParam(
+			"tokenId",
+			ethereum.Value.fromUnsignedBigInt(tokenId),
+		),
+	);
 
-  return transferEvent
+	return transferEvent;
 }
 
 export function createWithdrawalEvent(
-  owner: Address,
-  amount: BigInt
+	owner: Address,
+	amount: BigInt,
 ): Withdrawal {
-  let withdrawalEvent = changetype<Withdrawal>(newMockEvent())
+	const withdrawalEvent = changetype<Withdrawal>(newMockEvent());
 
-  withdrawalEvent.parameters = new Array()
+	withdrawalEvent.parameters = [];
 
-  withdrawalEvent.parameters.push(
-    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner))
-  )
-  withdrawalEvent.parameters.push(
-    new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(amount))
-  )
+	withdrawalEvent.parameters.push(
+		new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner)),
+	);
+	withdrawalEvent.parameters.push(
+		new ethereum.EventParam(
+			"amount",
+			ethereum.Value.fromUnsignedBigInt(amount),
+		),
+	);
 
-  return withdrawalEvent
+	return withdrawalEvent;
 }
