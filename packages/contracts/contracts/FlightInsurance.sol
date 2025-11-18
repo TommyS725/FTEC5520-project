@@ -252,7 +252,7 @@ contract FlightInsurance  is ERC721Listing, Ownable {
         emit FlightSettled(flightIdHash);
     }
 
-
+    //todo: should also check flight info is already available in flightDelayContract
     function purchaseInsurance(uint256 policyId) external payable {
         InsurancePolicy storage policy = policies[policyId];
         FlightState storage flightState = flightStates[policy.flightIdHash];

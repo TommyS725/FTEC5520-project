@@ -699,7 +699,7 @@ export const PolicyDocument = new TypedDocumentString(`
 export const OpenPolicyDocument = new TypedDocumentString(`
     query OpenPolicy($currentTimestamp: String!) {
   policies(
-    where: {expiration_gt: $currentTimestamp, open: true, inventory_gt: "0"}
+    where: {expiration_gt: $currentTimestamp, open: true, inventory_gt: "0", flight_: {settled: false, delay: null}}
   ) {
     id
     flight {

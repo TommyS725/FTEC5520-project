@@ -32,7 +32,8 @@ export const PolicyCard = ({ policy, className, isAdmin, ...props }: PolicyCardP
             flight.delay >= policy.delayThreshold ? "Delayed" : "On Time"
         ) : flight.requestedAt ? "Delay Info Requested" : "Awaiting Data Request";
     const enoughReserve = props.availableReserve !== undefined && BigInt(policy.payout) <= props.availableReserve;
-    const canPurchase = policy.open && !expired && Number(policy.inventory) > 0 && !purchaseInsuranceMutation.isPending && enoughReserve;
+    const canPurchase = policy.open && !expired && flight.settled === false && flight.delay === null &&
+        Number(policy.inventory) > 0 && !purchaseInsuranceMutation.isPending && enoughReserve;
 
     return (
         <Card
@@ -101,7 +102,9 @@ export const PolicyCard = ({ policy, className, isAdmin, ...props }: PolicyCardP
                         }}
                     >
                         {
-                            enoughReserve ? "Purchase" : "Insufficient Reserve"
+                            flight.settled || flight.delay !== null ? "Flight Processed" :
+                                expired ? "Policy Expired" :
+                                    policy.open ? (enoughReserve ? (Number(policy.inventory) > 0 ? "Purchase" : "Sold Out") : "Insufficient Reserve") : "Policy Closed"
                         }
                     </Button>
                 }
